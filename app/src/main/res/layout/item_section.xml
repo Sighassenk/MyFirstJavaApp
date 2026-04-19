@@ -1,35 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:layout_marginBottom="4dp">
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/divider"
+    app:cardBackgroundColor="@color/surface">
 
-    <TextView
-        android:id="@+id/tvSectionTitle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="14dp"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:background="#F0F0F0"
-        android:drawableEnd="@android:drawable/arrow_down_float"/>
+        android:orientation="vertical">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvLessons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="visible"
-        android:nestedScrollingEnabled="false"
-        android:paddingStart="8dp"/>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#F8F9FE">
 
-    <Button
-        android:id="@+id/btnAddLesson"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="+ Add Lesson"
-        style="@style/Widget.AppCompat.Button.Borderless"
-        android:visibility="gone"
-        android:paddingStart="14dp"/>
+            <TextView
+                android:id="@+id/tvSectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawableStart="@android:drawable/arrow_down_float"
+                android:drawablePadding="12dp"
+                android:padding="16dp"
+                android:layout_toStartOf="@id/btnDeleteSection"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-</LinearLayout>
+            <ImageButton
+                android:id="@+id/btnDeleteSection"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_delete"
+                android:visibility="gone"
+                app:tint="@color/error" />
+        </RelativeLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLessons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:nestedScrollingEnabled="false"
+            android:paddingVertical="8dp"
+            android:visibility="visible" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddLesson"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginHorizontal="8dp"
+            android:layout_marginVertical="8dp"
+            android:text="+ Add Lesson"
+            android:textColor="@color/primary"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

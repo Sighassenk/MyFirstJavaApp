@@ -3,9 +3,12 @@ package com.example.myapplication.ui.student;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,7 +27,7 @@ public class MyCoursesActivity extends AppCompatActivity {
 
     private RecyclerView  rvCourses;
     private ProgressBar   progressBar;
-    private TextView      tvEmpty;
+    private View          emptyState;
     private CourseAdapter courseAdapter;
     private final List<Course> courseList = new ArrayList<>();
 
@@ -37,8 +40,11 @@ public class MyCoursesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_courses);
 
-        if (getSupportActionBar() != null)
-            getSupportActionBar().setTitle("My Courses");
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         enrollmentRepository = new EnrollmentRepository();
         courseRepository     = new CourseRepository();
@@ -46,7 +52,9 @@ public class MyCoursesActivity extends AppCompatActivity {
 
         rvCourses   = findViewById(R.id.rvCourses);
         progressBar = findViewById(R.id.progressBar);
-        tvEmpty     = findViewById(R.id.tvEmpty);
+        emptyState  = findViewById(R.id.emptyState);
+
+        findViewById(R.id.btnBrowse).setOnClickListener(v -> finish());
 
         courseAdapter = new CourseAdapter(courseList, course -> {
             Intent intent = new Intent(this, CourseDetailActivity.class);
@@ -60,6 +68,15 @@ public class MyCoursesActivity extends AppCompatActivity {
         loadMyCourses();
     }
 
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void loadMyCourses() {
         progressBar.setVisibility(View.VISIBLE);
         String userId = sessionManager.getUserId();
@@ -67,7 +84,7 @@ public class MyCoursesActivity extends AppCompatActivity {
         enrollmentRepository.getEnrollments(userId, enrollments -> {
             if (enrollments.isEmpty()) {
                 progressBar.setVisibility(View.GONE);
-                tvEmpty.setVisibility(View.VISIBLE);
+                emptyState.setVisibility(View.VISIBLE);
                 return;
             }
 
@@ -79,7 +96,7 @@ public class MyCoursesActivity extends AppCompatActivity {
                 courseList.clear();
                 courseList.addAll(courses);
                 courseAdapter.updateList(courseList);
-                tvEmpty.setVisibility(courses.isEmpty() ? View.VISIBLE : View.GONE);
+                emptyState.setVisibility(courses.isEmpty() ? View.VISIBLE : View.GONE);
             });
         });
     }

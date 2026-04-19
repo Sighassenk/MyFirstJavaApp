@@ -11,6 +11,7 @@ public class Course {
     private float rating;
     private String thumbnailUrl;
     private int totalLessons;
+    private int totalDuration; // Total seconds of all lessons
     private long createdAt;
 
     public Course() {}
@@ -44,6 +45,9 @@ public class Course {
 
     public int getTotalLessons() { return totalLessons; }
     public void setTotalLessons(int totalLessons) { this.totalLessons = totalLessons; }
+
+    public int getTotalDuration() { return totalDuration; }
+    public void setTotalDuration(int totalDuration) { this.totalDuration = totalDuration; }
 
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }

@@ -1,8 +1,10 @@
 package com.example.myapplication.ui.student;
 
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -38,6 +40,11 @@ public class CourseDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_course_detail);
 
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Course Details");
+        }
+
         courseId = getIntent().getStringExtra("courseId");
         courseRepository    = new CourseRepository();
         enrollmentRepository = new EnrollmentRepository();
@@ -65,6 +72,15 @@ public class CourseDetailActivity extends AppCompatActivity {
             if (isEnrolled) return;
             enrollInCourse();
         });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void loadCourseDetails() {

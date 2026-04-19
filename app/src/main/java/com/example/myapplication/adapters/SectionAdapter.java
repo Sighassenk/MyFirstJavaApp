@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -49,7 +50,7 @@ public class SectionAdapter extends RecyclerView.Adapter<SectionAdapter.SectionV
         Section section = sections.get(position);
         holder.tvSectionTitle.setText(section.getTitle());
 
-        // Load lessons for this section into nested RecyclerView
+        // Load lessons for this section
         lessonRepository.getLessonsBySection(section.getId(), new OnSuccessListener<List<Lesson>>() {
             @Override
             public void onSuccess(List<Lesson> lessons) {
@@ -66,18 +67,24 @@ public class SectionAdapter extends RecyclerView.Adapter<SectionAdapter.SectionV
         holder.tvSectionTitle.setOnClickListener(v -> {
             boolean visible = holder.rvLessons.getVisibility() == View.VISIBLE;
             holder.rvLessons.setVisibility(visible ? View.GONE : View.VISIBLE);
-            holder.btnAddLesson.setVisibility(
-                    (context instanceof ManageCourseActivity && !visible)
-                            ? View.VISIBLE : View.GONE);
+            if (context instanceof ManageCourseActivity) {
+                holder.btnAddLesson.setVisibility(visible ? View.GONE : View.VISIBLE);
+            }
         });
 
-        // Show "Add Lesson" button only in instructor manage screen
+        // Show Instructor-only controls
         if (context instanceof ManageCourseActivity) {
             holder.btnAddLesson.setVisibility(View.VISIBLE);
+            holder.btnDeleteSection.setVisibility(View.VISIBLE);
+            
             holder.btnAddLesson.setOnClickListener(v ->
                     ((ManageCourseActivity) context).showAddLessonDialog(section.getId()));
+            
+            holder.btnDeleteSection.setOnClickListener(v -> 
+                    ((ManageCourseActivity) context).deleteSection(section.getId()));
         } else {
             holder.btnAddLesson.setVisibility(View.GONE);
+            holder.btnDeleteSection.setVisibility(View.GONE);
         }
     }
 
@@ -88,12 +95,14 @@ public class SectionAdapter extends RecyclerView.Adapter<SectionAdapter.SectionV
         TextView     tvSectionTitle;
         RecyclerView rvLessons;
         Button       btnAddLesson;
+        ImageButton  btnDeleteSection;
 
         SectionViewHolder(View itemView) {
             super(itemView);
-            tvSectionTitle = itemView.findViewById(R.id.tvSectionTitle);
-            rvLessons      = itemView.findViewById(R.id.rvLessons);
-            btnAddLesson   = itemView.findViewById(R.id.btnAddLesson);
+            tvSectionTitle   = itemView.findViewById(R.id.tvSectionTitle);
+            rvLessons        = itemView.findViewById(R.id.rvLessons);
+            btnAddLesson     = itemView.findViewById(R.id.btnAddLesson);
+            btnDeleteSection = itemView.findViewById(R.id.btnDeleteSection);
         }
     }
 }

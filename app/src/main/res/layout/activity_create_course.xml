@@ -1,77 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fillViewport="true">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:padding="20dp">
 
-        <ImageView
-            android:id="@+id/ivPreview"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardThumbnail"
             android:layout_width="match_parent"
-            android:layout_height="160dp"
-            android:scaleType="centerCrop"
-            android:background="#EEEEEE"
-            android:layout_marginBottom="8dp"/>
+            android:layout_height="200dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/divider"
+            app:layout_constraintTop_toTopOf="parent">
 
-        <Button
-            android:id="@+id/btnPickThumbnail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pick Thumbnail Image"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_marginBottom="16dp"/>
+            <ImageView
+                android:id="@+id/ivPreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:background="#F0F0F0" />
+        </com.google.android.material.card.MaterialCardView>
 
-        <EditText
-            android:id="@+id/etTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Course Title *"
-            android:inputType="text"
-            android:layout_marginBottom="12dp"/>
-
-        <EditText
-            android:id="@+id/etDescription"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilThumbnailUrl"
+            style="@style/Widget.App.TextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Description *"
-            android:inputType="textMultiLine"
-            android:minLines="3"
-            android:gravity="top"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginTop="16dp"
+            android:hint="Thumbnail Image URL (Free Hosting)"
+            app:layout_constraintTop_toBottomOf="@id/cardThumbnail">
 
-        <EditText
-            android:id="@+id/etCategory"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etThumbnailUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textUri" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilTitle"
+            style="@style/Widget.App.TextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Category (e.g. Programming) *"
-            android:inputType="text"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginTop="16dp"
+            android:hint="Course Title"
+            app:layout_constraintTop_toBottomOf="@id/tilThumbnailUrl">
 
-        <EditText
-            android:id="@+id/etPrice"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilCategory"
+            style="@style/Widget.App.TextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Price (leave empty for Free)"
-            android:inputType="numberDecimal"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginTop="16dp"
+            android:hint="Category (e.g. Design, Coding)"
+            app:layout_constraintTop_toBottomOf="@id/tilTitle">
 
-        <Button
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPrice"
+            style="@style/Widget.App.TextInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Price ($)"
+            app:layout_constraintTop_toBottomOf="@id/tilCategory">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilDescription"
+            style="@style/Widget.App.TextInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Description"
+            app:layout_constraintTop_toBottomOf="@id/tilPrice">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top"
+                android:minLines="4" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCreate"
+            style="@style/Widget.App.Button"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="56dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="32dp"
             android:text="Create Course"
-            android:layout_marginBottom="12dp"/>
+            android:textAllCaps="false"
+            app:layout_constraintTop_toBottomOf="@id/tilDescription"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone"/>
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/btnCreate"
+            app:layout_constraintEnd_toEndOf="@id/btnCreate"
+            app:layout_constraintStart_toStartOf="@id/btnCreate"
+            app:layout_constraintTop_toTopOf="@id/btnCreate" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

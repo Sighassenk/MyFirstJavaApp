@@ -46,9 +46,10 @@ public class EnrollmentRepository {
                         listener.onSuccess(snapshot.toObjects(Enrollment.class)));
     }
 
-    // Mark a lesson as complete and update progress
+    // New version: Mark a lesson complete based on duration
     public void completeLesson(String enrollmentId, String lessonId,
-                               int totalLessons, OnCompleteListener<Void> listener) {
+                               int lessonDuration, int courseTotalDuration, 
+                               OnCompleteListener<Void> listener) {
         DocumentReference ref = db.collection("enrollments").document(enrollmentId);
 
         db.runTransaction(transaction -> {
@@ -58,18 +59,23 @@ public class EnrollmentRepository {
 
             if (!completed.contains(lessonId)) {
                 completed.add(lessonId);
-                float progress = (float) completed.size() / totalLessons;
+                
+                // Calculate new progress based on total course duration
+                float currentProgress = snap.getDouble("progress") != null ? snap.getDouble("progress").floatValue() : 0f;
+                float progressIncrement = (float) lessonDuration / courseTotalDuration;
+                float newProgress = Math.min(1.0f, currentProgress + progressIncrement);
+                
                 transaction.update(ref, "completedLessons", completed);
-                transaction.update(ref, "progress", progress);
+                transaction.update(ref, "progress", newProgress);
             }
             return null;
         }).addOnCompleteListener(task -> {
             if (listener != null) {
-                // Cast Task<Object> to Task<Void> to match listener type
                 listener.onComplete((com.google.android.gms.tasks.Task<Void>) (com.google.android.gms.tasks.Task<?>) task);
             }
         });
     }
+
     // Get a single enrollment by userId + courseId
     public void getEnrollmentByUserAndCourse(String userId, String courseId,
                                              OnSuccessListener<Enrollment> listener) {

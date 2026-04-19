@@ -1,5 +1,6 @@
 package com.example.myapplication.repositories;
 
+import android.util.Log;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -8,39 +9,51 @@ import com.example.myapplication.models.Course;
 import com.example.myapplication.models.Section;
 import com.example.myapplication.models.Lesson;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class CourseRepository {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private static final String TAG = "CourseRepository";
 
-    // Student: get all courses (browse)
     public void getAllCourses(OnSuccessListener<List<Course>> listener) {
         db.collection("courses")
                 .get()
                 .addOnSuccessListener(snapshot -> {
                     List<Course> courses = snapshot.toObjects(Course.class);
                     listener.onSuccess(courses);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching all courses", e);
+                    listener.onSuccess(new ArrayList<>());
                 });
     }
 
-    // Student: get courses by category
     public void getCoursesByCategory(String category, OnSuccessListener<List<Course>> listener) {
         db.collection("courses")
                 .whereEqualTo("category", category)
                 .get()
                 .addOnSuccessListener(snapshot ->
-                        listener.onSuccess(snapshot.toObjects(Course.class)));
+                        listener.onSuccess(snapshot.toObjects(Course.class)))
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching courses by category", e);
+                    listener.onSuccess(new ArrayList<>());
+                });
     }
 
-    // Instructor: get own courses
     public void getInstructorCourses(String instructorId, OnSuccessListener<List<Course>> listener) {
         db.collection("courses")
                 .whereEqualTo("instructorId", instructorId)
                 .get()
                 .addOnSuccessListener(snapshot ->
-                        listener.onSuccess(snapshot.toObjects(Course.class)));
+                        listener.onSuccess(snapshot.toObjects(Course.class)))
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching instructor courses", e);
+                    listener.onSuccess(new ArrayList<>());
+                });
     }
 
-    // Instructor: create course
     public void createCourse(Course course, OnCompleteListener<Void> listener) {
         String id = db.collection("courses").document().getId();
         course.setId(id);
@@ -49,25 +62,30 @@ public class CourseRepository {
                 .addOnCompleteListener(listener);
     }
 
-    // Get sections of a course
     public void getSections(String courseId, OnSuccessListener<List<Section>> listener) {
         db.collection("sections")
                 .whereEqualTo("courseId", courseId)
                 .orderBy("order", Query.Direction.ASCENDING)
                 .get()
-                .addOnSuccessListener(snapshot ->
-                        listener.onSuccess(snapshot.toObjects(Section.class)))
+                .addOnSuccessListener(snapshot -> {
+                    List<Section> sections = snapshot.toObjects(Section.class);
+                    listener.onSuccess(sections);
+                })
                 .addOnFailureListener(e -> {
-                    // Fallback if index isn't created yet
+                    Log.w(TAG, "Ordered query failed, falling back to manual sort", e);
                     db.collection("sections")
                             .whereEqualTo("courseId", courseId)
                             .get()
-                            .addOnSuccessListener(snapshot ->
-                                    listener.onSuccess(snapshot.toObjects(Section.class)));
+                            .addOnSuccessListener(snapshot -> {
+                                List<Section> sections = snapshot.toObjects(Section.class);
+                                // Manually sort the list in memory
+                                Collections.sort(sections, (s1, s2) -> Integer.compare(s1.getOrder(), s2.getOrder()));
+                                listener.onSuccess(sections);
+                            })
+                            .addOnFailureListener(e2 -> listener.onSuccess(new ArrayList<>()));
                 });
     }
 
-    // Get lessons of a section
     public void getLessons(String sectionId, OnSuccessListener<List<Lesson>> listener) {
         db.collection("lessons")
                 .whereEqualTo("sectionId", sectionId)
@@ -76,23 +94,32 @@ public class CourseRepository {
                 .addOnSuccessListener(snapshot ->
                         listener.onSuccess(snapshot.toObjects(Lesson.class)))
                 .addOnFailureListener(e -> {
-                    // Fallback if index isn't created yet
+                    Log.w(TAG, "Ordered lesson query failed, falling back to manual sort", e);
                     db.collection("lessons")
                             .whereEqualTo("sectionId", sectionId)
                             .get()
-                            .addOnSuccessListener(snapshot ->
-                                    listener.onSuccess(snapshot.toObjects(Lesson.class)));
+                            .addOnSuccessListener(snapshot -> {
+                                List<Lesson> lessons = snapshot.toObjects(Lesson.class);
+                                // Manually sort the list in memory
+                                Collections.sort(lessons, (l1, l2) -> Integer.compare(l1.getOrder(), l2.getOrder()));
+                                listener.onSuccess(lessons);
+                            })
+                            .addOnFailureListener(e2 -> listener.onSuccess(new ArrayList<>()));
                 });
     }
-    // Fetch multiple courses by a list of IDs (for My Courses screen)
+    
     public void getCoursesByIds(List<String> ids, OnSuccessListener<List<Course>> listener) {
         if (ids == null || ids.isEmpty()) {
-            listener.onSuccess(new java.util.ArrayList<>());
+            listener.onSuccess(new ArrayList<>());
             return;
         }
         db.collection("courses")
                 .whereIn("id", ids)
                 .get()
-                .addOnSuccessListener(snap -> listener.onSuccess(snap.toObjects(Course.class)));
+                .addOnSuccessListener(snap -> listener.onSuccess(snap.toObjects(Course.class)))
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching courses by IDs", e);
+                    listener.onSuccess(new ArrayList<>());
+                });
     }
 }

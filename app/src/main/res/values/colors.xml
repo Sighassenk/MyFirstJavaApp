@@ -2,4 +2,22 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    
+    <!-- Primary Branding Colors from Logo -->
+    <color name="primary">#7C4DFF</color>
+    <color name="primary_light">#B47CFF</color>
+    <color name="primary_dark">#3F1DCB</color>
+    
+    <!-- Secondary Colors -->
+    <color name="accent">#00E5FF</color>
+    
+    <!-- Backgrounds and Surfaces -->
+    <color name="background">#F8F9FE</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="error">#FF5252</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="divider">#BDBDBD</color>
 </resources>

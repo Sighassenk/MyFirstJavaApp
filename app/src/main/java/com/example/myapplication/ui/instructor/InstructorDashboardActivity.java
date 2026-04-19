@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.example.myapplication.R;
 import com.example.myapplication.adapters.CourseAdapter;
 import com.example.myapplication.models.Course;
@@ -22,12 +22,13 @@ import java.util.List;
 
 public class InstructorDashboardActivity extends AppCompatActivity {
 
-    private RecyclerView         rvCourses;
-    private FloatingActionButton fabCreate;
-    private ProgressBar          progressBar;
-    private TextView             tvEmpty, tvWelcome;
-    private CourseAdapter        courseAdapter;
-    private final List<Course>   courseList = new ArrayList<>();
+    private RecyclerView                 rvCourses;
+    private ExtendedFloatingActionButton fabCreate;
+    private ProgressBar                  progressBar;
+    private TextView                     tvWelcome;
+    private View                         emptyState;
+    private CourseAdapter                courseAdapter;
+    private final List<Course>           courseList = new ArrayList<>();
 
     private CourseRepository courseRepository;
     private SessionManager   sessionManager;
@@ -43,7 +44,7 @@ public class InstructorDashboardActivity extends AppCompatActivity {
         rvCourses   = findViewById(R.id.rvCourses);
         fabCreate   = findViewById(R.id.fabCreate);
         progressBar = findViewById(R.id.progressBar);
-        tvEmpty     = findViewById(R.id.tvEmpty);
+        emptyState  = findViewById(R.id.emptyState);
         tvWelcome   = findViewById(R.id.tvWelcome);
 
         tvWelcome.setText("Welcome, " + sessionManager.getUserName());
@@ -76,7 +77,10 @@ public class InstructorDashboardActivity extends AppCompatActivity {
             courseList.clear();
             courseList.addAll(courses);
             courseAdapter.updateList(courseList);
-            tvEmpty.setVisibility(courses.isEmpty() ? View.VISIBLE : View.GONE);
+            
+            if (emptyState != null) {
+                emptyState.setVisibility(courses.isEmpty() ? View.VISIBLE : View.GONE);
+            }
         });
     }
 
@@ -86,5 +90,6 @@ public class InstructorDashboardActivity extends AppCompatActivity {
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+        finish();
     }
 }

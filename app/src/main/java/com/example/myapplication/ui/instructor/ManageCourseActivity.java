@@ -8,6 +8,7 @@ import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -40,9 +41,10 @@ public class ManageCourseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_course);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Manage Curriculum");
         }
 
         courseId         = getIntent().getStringExtra("courseId");
@@ -59,12 +61,18 @@ public class ManageCourseActivity extends AppCompatActivity {
         btnAddSection.setOnClickListener(v -> showAddSectionDialog());
         loadCourseTitle();
         loadSections();
+        
+        // Long click on course title to delete course
+        tvCourseTitle.setOnLongClickListener(v -> {
+            showDeleteCourseDialog();
+            return true;
+        });
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish();
+            onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -122,6 +130,38 @@ public class ManageCourseActivity extends AppCompatActivity {
                     loadSections();
                 });
     }
+    
+    private void showDeleteCourseDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Course?")
+                .setMessage("This will permanently remove the course and all its content.")
+                .setPositiveButton("Delete", (d, w) -> {
+                    FirebaseUtils.getDb().collection("courses").document(courseId)
+                            .delete()
+                            .addOnSuccessListener(v -> {
+                                Toast.makeText(this, "Course deleted", Toast.LENGTH_SHORT).show();
+                                finish();
+                            });
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    public void deleteSection(String sectionId) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Section?")
+                .setMessage("All lessons in this section will also be deleted.")
+                .setPositiveButton("Delete", (d, w) -> {
+                    FirebaseUtils.getDb().collection("sections").document(sectionId)
+                            .delete()
+                            .addOnSuccessListener(v -> {
+                                Toast.makeText(this, "Section deleted", Toast.LENGTH_SHORT).show();
+                                loadSections();
+                            });
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
 
     public void showAddLessonDialog(String sectionId) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_lesson, null);
@@ -142,19 +182,21 @@ public class ManageCourseActivity extends AppCompatActivity {
                         return;
                     }
 
+                    int duration = durStr.isEmpty() ? 0 : Integer.parseInt(durStr);
                     Lesson lesson = new Lesson();
                     lesson.setTitle(title);
                     lesson.setVideoUrl(videoUrl);
-                    lesson.setDuration(durStr.isEmpty() ? 0 : Integer.parseInt(durStr));
+                    lesson.setDuration(duration);
                     lesson.setSectionId(sectionId);
                     lesson.setCourseId(courseId);
                     lesson.setOrder(0);
 
                     lessonRepository.addLesson(lesson, task -> {
                         if (task.isSuccessful()) {
+                            // Increment totalLessons and totalDuration on the course doc
                             FirebaseUtils.getDb().collection("courses").document(courseId)
-                                    .update("totalLessons",
-                                            com.google.firebase.firestore.FieldValue.increment(1));
+                                    .update("totalLessons", com.google.firebase.firestore.FieldValue.increment(1),
+                                            "totalDuration", com.google.firebase.firestore.FieldValue.increment(duration));
                             Toast.makeText(this, "Lesson added", Toast.LENGTH_SHORT).show();
                             loadSections();
                         }

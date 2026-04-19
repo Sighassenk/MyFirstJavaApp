@@ -8,7 +8,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication.R;
@@ -58,7 +58,8 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        rvCourses.setLayoutManager(new GridLayoutManager(this, 2));
+        // Changed from GridLayoutManager to LinearLayoutManager to show courses under each other
+        rvCourses.setLayoutManager(new LinearLayoutManager(this));
         rvCourses.setAdapter(courseAdapter);
 
         setupSearch();
@@ -92,5 +93,6 @@ public class HomeActivity extends AppCompatActivity {
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+        finish();
     }
 }

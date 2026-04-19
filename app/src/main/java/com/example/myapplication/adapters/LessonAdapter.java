@@ -51,8 +51,9 @@ public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonView
         int secs = lesson.getDuration() % 60;
         holder.tvDuration.setText(String.format("%d:%02d", mins, secs));
 
+        // Use standard icons if custom ones are missing
         holder.ivLock.setImageResource(
-                isEnrolled ? R.drawable.ic_play : R.drawable.ic_lock);
+                isEnrolled ? android.R.drawable.ic_media_play : android.R.drawable.ic_lock_lock);
 
         holder.itemView.setOnClickListener(v -> {
             if (!isEnrolled) {
@@ -64,7 +65,8 @@ public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonView
             intent.putExtra("lessonId",      lesson.getId());
             intent.putExtra("lessonTitle",   lesson.getTitle());
             intent.putExtra("enrollmentId",  enrollmentId);
-            intent.putExtra("totalLessons",  totalLessons);
+            intent.putExtra("courseId",      lesson.getCourseId());
+            intent.putExtra("lessonDuration", lesson.getDuration());
             context.startActivity(intent);
         });
     }
