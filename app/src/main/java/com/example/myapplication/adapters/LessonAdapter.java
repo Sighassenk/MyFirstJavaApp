@@ -60,7 +60,7 @@ public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonView
             holder.tvLessonTitle.setTextColor(Color.BLACK);
         }
 
-        // Use standard icons
+
         holder.ivLock.setImageResource(
                 isEnrolled ? android.R.drawable.ic_media_play : android.R.drawable.ic_lock_lock);
 
