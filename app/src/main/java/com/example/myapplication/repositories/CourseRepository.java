@@ -30,6 +30,25 @@ public class CourseRepository {
                 });
     }
 
+    public void getTrendingCourses(OnSuccessListener<List<Course>> listener) {
+        db.collection("courses")
+                .orderBy("enrollmentCount", Query.Direction.DESCENDING)
+                .limit(3)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    List<Course> courses = snapshot.toObjects(Course.class);
+                    listener.onSuccess(courses);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching trending courses", e);
+                    // Fallback to getting any 3 courses if index not ready
+                    db.collection("courses")
+                            .limit(3)
+                            .get()
+                            .addOnSuccessListener(snap -> listener.onSuccess(snap.toObjects(Course.class)));
+                });
+    }
+
     public void getCoursesByCategory(String category, OnSuccessListener<List<Course>> listener) {
         db.collection("courses")
                 .whereEqualTo("category", category)
@@ -62,6 +81,18 @@ public class CourseRepository {
                 .addOnCompleteListener(listener);
     }
 
+    public void updateCourse(Course course, OnCompleteListener<Void> listener) {
+        db.collection("courses").document(course.getId())
+                .set(course)
+                .addOnCompleteListener(listener);
+    }
+
+    public void deleteCourse(String courseId, OnCompleteListener<Void> listener) {
+        db.collection("courses").document(courseId)
+                .delete()
+                .addOnCompleteListener(listener);
+    }
+
     public void getSections(String courseId, OnSuccessListener<List<Section>> listener) {
         db.collection("sections")
                 .whereEqualTo("courseId", courseId)
@@ -78,7 +109,6 @@ public class CourseRepository {
                             .get()
                             .addOnSuccessListener(snapshot -> {
                                 List<Section> sections = snapshot.toObjects(Section.class);
-                                // Manually sort the list in memory
                                 Collections.sort(sections, (s1, s2) -> Integer.compare(s1.getOrder(), s2.getOrder()));
                                 listener.onSuccess(sections);
                             })
@@ -100,7 +130,6 @@ public class CourseRepository {
                             .get()
                             .addOnSuccessListener(snapshot -> {
                                 List<Lesson> lessons = snapshot.toObjects(Lesson.class);
-                                // Manually sort the list in memory
                                 Collections.sort(lessons, (l1, l2) -> Integer.compare(l1.getOrder(), l2.getOrder()));
                                 listener.onSuccess(lessons);
                             })

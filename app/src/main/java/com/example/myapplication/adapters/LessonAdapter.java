@@ -91,7 +91,7 @@ public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonView
             super(itemView);
             tvLessonTitle = itemView.findViewById(R.id.tvLessonTitle);
             tvDuration    = itemView.findViewById(R.id.tvDuration);
-            ivLock        = itezView.findViewById(R.id.ivLock);
+            ivLock        = itemView.findViewById(R.id.ivLock);
         }
     }
 }

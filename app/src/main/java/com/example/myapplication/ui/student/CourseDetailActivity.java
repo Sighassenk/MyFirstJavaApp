@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,15 +21,20 @@ import com.example.myapplication.utils.FirebaseUtils;
 import com.example.myapplication.utils.SessionManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CourseDetailActivity extends AppCompatActivity {
 
     private TextView    tvTitle, tvDescription, tvInstructor, tvPrice, tvRating, tvCategory;
     private ImageView   ivThumbnail;
-    private ProgressBar progressCourse, progressBar;
+    private ProgressBar progressBar;
+    private com.google.android.material.progressindicator.LinearProgressIndicator progressCourse;
     private RecyclerView rvSections;
-    private Button      btnEnroll;
+    private Button      btnEnroll, btnSubmitReview;
+    private RatingBar   ratingBar;
+    private View        cardReview;
 
     private CourseRepository    courseRepository;
     private EnrollmentRepository enrollmentRepository;
@@ -37,15 +43,17 @@ public class CourseDetailActivity extends AppCompatActivity {
     private String   courseId, userId, enrollmentId;
     private boolean  isEnrolled = false;
     private List<String> completedLessons = new ArrayList<>();
+    private Course currentCourse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_course_detail);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Course Details");
         }
 
         courseId = getIntent().getStringExtra("courseId");
@@ -65,6 +73,10 @@ public class CourseDetailActivity extends AppCompatActivity {
         btnEnroll     = findViewById(R.id.btnEnroll);
         progressBar   = findViewById(R.id.progressBar);
         progressCourse = findViewById(R.id.progressCourse);
+        
+        cardReview      = findViewById(R.id.cardReview);
+        ratingBar       = findViewById(R.id.ratingBar);
+        btnSubmitReview = findViewById(R.id.btnSubmitReview);
 
         rvSections.setLayoutManager(new LinearLayoutManager(this));
         rvSections.setNestedScrollingEnabled(false);
@@ -75,12 +87,14 @@ public class CourseDetailActivity extends AppCompatActivity {
             if (isEnrolled) return;
             enrollInCourse();
         });
+
+        btnSubmitReview.setOnClickListener(v -> submitReview());
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish();
+            onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -91,18 +105,18 @@ public class CourseDetailActivity extends AppCompatActivity {
         FirebaseUtils.getDb().collection("courses").document(courseId)
                 .get()
                 .addOnSuccessListener(doc -> {
-                    Course course = doc.toObject(Course.class);
-                    if (course == null) return;
+                    currentCourse = doc.toObject(Course.class);
+                    if (currentCourse == null) return;
 
-                    tvTitle.setText(course.getTitle());
-                    tvDescription.setText(course.getDescription());
-                    tvInstructor.setText("By " + course.getInstructorName());
-                    tvCategory.setText(course.getCategory());
-                    tvPrice.setText(course.getPrice() == 0 ? "Free" : String.format("$%.2f", course.getPrice()));
-                    tvRating.setText(String.format("%.1f ★", course.getRating()));
+                    tvTitle.setText(currentCourse.getTitle());
+                    tvDescription.setText(currentCourse.getDescription());
+                    tvInstructor.setText("By " + currentCourse.getInstructorName());
+                    tvCategory.setText(currentCourse.getCategory());
+                    tvPrice.setText(currentCourse.getPrice() == 0 ? "Free" : String.format("$%.2f", currentCourse.getPrice()));
+                    tvRating.setText(String.format("%.1f ★ (%d reviews)", currentCourse.getRating(), currentCourse.getRatingCount()));
 
-                    if (course.getThumbnailUrl() != null) {
-                        Glide.with(this).load(course.getThumbnailUrl()).into(ivThumbnail);
+                    if (currentCourse.getThumbnailUrl() != null && !currentCourse.getThumbnailUrl().isEmpty()) {
+                        Glide.with(this).load(currentCourse.getThumbnailUrl()).into(ivThumbnail);
                     }
 
                     progressBar.setVisibility(View.GONE);
@@ -118,13 +132,19 @@ public class CourseDetailActivity extends AppCompatActivity {
                 completedLessons = enrollment.getCompletedLessons();
                 if (completedLessons == null) completedLessons = new ArrayList<>();
 
-                btnEnroll.setText("Already Enrolled");
+                btnEnroll.setText("Enrolled");
                 btnEnroll.setEnabled(false);
+                cardReview.setVisibility(View.VISIBLE);
 
                 // Show progress bar
                 float pct = enrollment.getProgress() * 100;
                 progressCourse.setVisibility(View.VISIBLE);
                 progressCourse.setProgress((int) pct);
+                
+                // Set existing rating if any
+                if (currentCourse.getUserRatings() != null && currentCourse.getUserRatings().containsKey(userId)) {
+                    ratingBar.setRating(currentCourse.getUserRatings().get(userId));
+                }
             }
             loadSections();
         });
@@ -149,5 +169,39 @@ public class CourseDetailActivity extends AppCompatActivity {
                 Toast.makeText(this, "Enrollment failed. Try again.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void submitReview() {
+        float rating = ratingBar.getRating();
+        if (rating == 0) {
+            Toast.makeText(this, "Please select a rating", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        btnSubmitReview.setEnabled(false);
+        
+        Map<String, Object> updates = new HashMap<>();
+        Map<String, Float> ratings = currentCourse.getUserRatings();
+        if (ratings == null) ratings = new HashMap<>();
+        
+        ratings.put(userId, rating);
+        currentCourse.setUserRatings(ratings);
+        currentCourse.updateRating();
+        
+        updates.put("userRatings", ratings);
+        updates.put("rating", currentCourse.getRating());
+        updates.put("ratingCount", currentCourse.getRatingCount());
+
+        FirebaseUtils.getDb().collection("courses").document(courseId)
+                .update(updates)
+                .addOnSuccessListener(v -> {
+                    btnSubmitReview.setEnabled(true);
+                    tvRating.setText(String.format("%.1f ★ (%d reviews)", currentCourse.getRating(), currentCourse.getRatingCount()));
+                    Toast.makeText(this, "Review submitted!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    btnSubmitReview.setEnabled(true);
+                    Toast.makeText(this, "Failed to submit review", Toast.LENGTH_SHORT).show();
+                });
     }
 }

@@ -17,17 +17,17 @@ import java.util.List;
 
 public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseViewHolder> {
 
+    private List<Course> courseList;
+    private List<Course> fullList;
+    private final OnCourseClickListener listener;
+
     public interface OnCourseClickListener {
         void onCourseClick(Course course);
     }
 
-    private List<Course> courses;
-    private List<Course> allCourses;
-    private final OnCourseClickListener listener;
-
-    public CourseAdapter(List<Course> courses, OnCourseClickListener listener) {
-        this.courses    = new ArrayList<>(courses);
-        this.allCourses = new ArrayList<>(courses);
+    public CourseAdapter(List<Course> courseList, OnCourseClickListener listener) {
+        this.courseList = courseList;
+        this.fullList   = new ArrayList<>(courseList);
         this.listener   = listener;
     }
 
@@ -40,64 +40,64 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseView
 
     @Override
     public void onBindViewHolder(@NonNull CourseViewHolder holder, int position) {
-        Course course = courses.get(position);
+        Course course = courseList.get(position);
 
         holder.tvTitle.setText(course.getTitle());
-        holder.tvInstructor.setText(course.getInstructorName());
+        holder.tvInstructor.setText("By " + course.getInstructorName());
         holder.tvCategory.setText(course.getCategory());
-        holder.tvRating.setText(String.format("%.1f ★", course.getRating()));
-        holder.tvPrice.setText(course.getPrice() == 0
-                ? "Free" : String.format("$%.2f", course.getPrice()));
+        holder.tvPrice.setText(course.getPrice() == 0 ? "Free" : String.format("$%.2f", course.getPrice()));
+        holder.tvRating.setText(String.format("%.1f", course.getRating()));
 
         if (course.getThumbnailUrl() != null && !course.getThumbnailUrl().isEmpty()) {
             Glide.with(holder.itemView.getContext())
                     .load(course.getThumbnailUrl())
-                    .placeholder(R.drawable.ic_launcher_background)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
                     .into(holder.ivThumbnail);
         } else {
-            holder.ivThumbnail.setImageResource(R.drawable.ic_launcher_background);
+            holder.ivThumbnail.setImageResource(android.R.drawable.ic_menu_gallery);
         }
 
         holder.itemView.setOnClickListener(v -> listener.onCourseClick(course));
     }
 
     @Override
-    public int getItemCount() { return courses.size(); }
+    public int getItemCount() { return courseList.size(); }
 
-    public void filter(String query) {
-        courses.clear();
-        if (query.isEmpty()) {
-            courses.addAll(allCourses);
-        } else {
-            String lower = query.toLowerCase().trim();
-            for (Course c : allCourses) {
-                if ((c.getTitle() != null && c.getTitle().toLowerCase().contains(lower)) ||
-                        (c.getCategory() != null && c.getCategory().toLowerCase().contains(lower))) {
-                    courses.add(c);
-                }
-            }
-        }
+    public void updateList(List<Course> newList) {
+        this.courseList = newList;
+        this.fullList   = new ArrayList<>(newList);
         notifyDataSetChanged();
     }
 
-    public void updateList(List<Course> newCourses) {
-        allCourses = new ArrayList<>(newCourses);
-        courses    = new ArrayList<>(newCourses);
+    public void filter(String text) {
+        List<Course> filtered = new ArrayList<>();
+        if (text.isEmpty()) {
+            filtered.addAll(fullList);
+        } else {
+            String query = text.toLowerCase().trim();
+            for (Course c : fullList) {
+                if (c.getTitle().toLowerCase().contains(query) ||
+                    c.getCategory().toLowerCase().contains(query)) {
+                    filtered.add(c);
+                }
+            }
+        }
+        courseList = filtered;
         notifyDataSetChanged();
     }
 
     static class CourseViewHolder extends RecyclerView.ViewHolder {
         ImageView ivThumbnail;
-        TextView  tvTitle, tvInstructor, tvPrice, tvRating, tvCategory;
+        TextView  tvTitle, tvInstructor, tvCategory, tvRating, tvPrice;
 
         CourseViewHolder(View itemView) {
             super(itemView);
             ivThumbnail  = itemView.findViewById(R.id.ivThumbnail);
             tvTitle      = itemView.findViewById(R.id.tvTitle);
             tvInstructor = itemView.findViewById(R.id.tvInstructor);
-            tvPrice      = itemView.findViewById(R.id.tvPrice);
-            tvRating     = itemView.findViewById(R.id.tvRating);
             tvCategory   = itemView.findViewById(R.id.tvCategory);
+            tvRating     = itemView.findViewById(R.id.tvRating);
+            tvPrice      = itemView.findViewById(R.id.tvPrice);
         }
     }
 }
