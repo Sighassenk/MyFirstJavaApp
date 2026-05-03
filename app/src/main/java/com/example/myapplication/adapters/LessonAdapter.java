@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication.R;
 import com.example.myapplication.models.Lesson;
+import com.example.myapplication.ui.instructor.ManageCourseActivity;
 import com.example.myapplication.ui.student.VideoPlayerActivity;
 
 import java.util.List;
@@ -60,11 +62,24 @@ public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonView
             holder.tvLessonTitle.setTextColor(Color.BLACK);
         }
 
-
+        // Use standard icons
         holder.ivLock.setImageResource(
                 isEnrolled ? android.R.drawable.ic_media_play : android.R.drawable.ic_lock_lock);
 
+        // Instructor actions
+        if (context instanceof ManageCourseActivity) {
+            holder.layoutInstructorActions.setVisibility(View.VISIBLE);
+            holder.btnEditLesson.setOnClickListener(v -> ((ManageCourseActivity) context).showEditLessonDialog(lesson));
+            holder.btnDeleteLesson.setOnClickListener(v -> ((ManageCourseActivity) context).deleteLesson(lesson));
+            holder.ivLock.setVisibility(View.GONE); // Hide play/lock icon in manage screen to save space
+        } else {
+            holder.layoutInstructorActions.setVisibility(View.GONE);
+            holder.ivLock.setVisibility(View.VISIBLE);
+        }
+
         holder.itemView.setOnClickListener(v -> {
+            if (context instanceof ManageCourseActivity) return; // No playback in manage screen
+
             if (!isEnrolled) {
                 Toast.makeText(context, "Enroll to watch this lesson", Toast.LENGTH_SHORT).show();
                 return;
@@ -86,12 +101,17 @@ public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonView
     static class LessonViewHolder extends RecyclerView.ViewHolder {
         TextView  tvLessonTitle, tvDuration;
         ImageView ivLock;
+        LinearLayout layoutInstructorActions;
+        View btnEditLesson, btnDeleteLesson;
 
         LessonViewHolder(View itemView) {
             super(itemView);
             tvLessonTitle = itemView.findViewById(R.id.tvLessonTitle);
             tvDuration    = itemView.findViewById(R.id.tvDuration);
             ivLock        = itemView.findViewById(R.id.ivLock);
+            layoutInstructorActions = itemView.findViewById(R.id.layoutInstructorActions);
+            btnEditLesson   = itemView.findViewById(R.id.btnEditLesson);
+            btnDeleteLesson = itemView.findViewById(R.id.btnDeleteLesson);
         }
     }
 }

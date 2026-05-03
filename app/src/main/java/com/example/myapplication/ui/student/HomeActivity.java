@@ -27,7 +27,6 @@ public class HomeActivity extends AppCompatActivity {
     private RecyclerView  rvCourses;
     private EditText      etSearch;
     private ProgressBar   progressBar;
-    private TextView      tvEmpty;
     private CourseAdapter courseAdapter;
     private final List<Course> courseList = new ArrayList<>();
 
@@ -45,7 +44,6 @@ public class HomeActivity extends AppCompatActivity {
         rvCourses   = findViewById(R.id.rvCourses);
         etSearch    = findViewById(R.id.etSearch);
         progressBar = findViewById(R.id.progressBar);
-        tvEmpty     = findViewById(R.id.tvEmpty);
 
         findViewById(R.id.btnMyCourses).setOnClickListener(v ->
                 startActivity(new Intent(this, MyCoursesActivity.class)));
@@ -58,7 +56,6 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Changed from GridLayoutManager to LinearLayoutManager to show courses under each other
         rvCourses.setLayoutManager(new LinearLayoutManager(this));
         rvCourses.setAdapter(courseAdapter);
 
@@ -73,7 +70,6 @@ public class HomeActivity extends AppCompatActivity {
             courseList.clear();
             courseList.addAll(courses);
             courseAdapter.updateList(courseList);
-            tvEmpty.setVisibility(courses.isEmpty() ? View.VISIBLE : View.GONE);
         });
     }
 

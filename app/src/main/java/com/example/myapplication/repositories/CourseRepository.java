@@ -3,6 +3,9 @@ package com.example.myapplication.repositories;
 import android.util.Log;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.example.myapplication.models.Course;
@@ -27,25 +30,6 @@ public class CourseRepository {
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error fetching all courses", e);
                     listener.onSuccess(new ArrayList<>());
-                });
-    }
-
-    public void getTrendingCourses(OnSuccessListener<List<Course>> listener) {
-        db.collection("courses")
-                .orderBy("enrollmentCount", Query.Direction.DESCENDING)
-                .limit(3)
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    List<Course> courses = snapshot.toObjects(Course.class);
-                    listener.onSuccess(courses);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error fetching trending courses", e);
-                    // Fallback to getting any 3 courses if index not ready
-                    db.collection("courses")
-                            .limit(3)
-                            .get()
-                            .addOnSuccessListener(snap -> listener.onSuccess(snap.toObjects(Course.class)));
                 });
     }
 
@@ -88,8 +72,39 @@ public class CourseRepository {
     }
 
     public void deleteCourse(String courseId, OnCompleteListener<Void> listener) {
-        db.collection("courses").document(courseId)
-                .delete()
+        // Cascading delete: Delete Course, Enrollments, Sections, and Lessons
+        db.collection("courses").document(courseId).delete()
+                .continueWithTask(task -> {
+                    // Delete all enrollments for this course
+                    return db.collection("enrollments")
+                            .whereEqualTo("courseId", courseId)
+                            .get();
+                })
+                .continueWithTask(task -> {
+                    List<Task<Void>> deleteTasks = new ArrayList<>();
+                    for (DocumentSnapshot doc : task.getResult().getDocuments()) {
+                        deleteTasks.add(doc.getReference().delete());
+                    }
+                    // Delete all sections for this course
+                    return db.collection("sections")
+                            .whereEqualTo("courseId", courseId)
+                            .get()
+                            .continueWithTask(sectionTask -> {
+                                for (DocumentSnapshot doc : sectionTask.getResult().getDocuments()) {
+                                    deleteTasks.add(doc.getReference().delete());
+                                }
+                                // Delete all lessons for this course
+                                return db.collection("lessons")
+                                        .whereEqualTo("courseId", courseId)
+                                        .get();
+                            })
+                            .continueWithTask(lessonTask -> {
+                                for (DocumentSnapshot doc : lessonTask.getResult().getDocuments()) {
+                                    deleteTasks.add(doc.getReference().delete());
+                                }
+                                return Tasks.whenAll(deleteTasks);
+                            });
+                })
                 .addOnCompleteListener(listener);
     }
 

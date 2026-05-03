@@ -15,7 +15,6 @@ public class Course {
     private int ratingCount;
     private double totalRatingSum;
     private String thumbnailUrl;
-    private int totalLessons;
     private int totalDuration; // Total seconds of all lessons
     private long createdAt;
     private Map<String, Float> userRatings = new HashMap<>(); // userId -> rating
@@ -54,9 +53,6 @@ public class Course {
 
     public String getThumbnailUrl() { return thumbnailUrl; }
     public void setThumbnailUrl(String thumbnailUrl) { this.thumbnailUrl = thumbnailUrl; }
-
-    public int getTotalLessons() { return totalLessons; }
-    public void setTotalLessons(int totalLessons) { this.totalLessons = totalLessons; }
 
     public int getTotalDuration() { return totalDuration; }
     public void setTotalDuration(int totalDuration) { this.totalDuration = totalDuration; }
